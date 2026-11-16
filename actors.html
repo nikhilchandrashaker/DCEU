@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCEU Actor Search</title>
+<style>
+:root{--bg:#18212c;--ink:#e6ecf2;--mut:#93a3b5;--hit:#f2b705;--miss:#d0343f;--card:#233040;--blue:#2f6db5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:32px 20px 60px}
+h1{font:700 clamp(30px,5vw,52px)/1.05 Georgia,serif;margin:0 0 10px}
+p.lead{max-width:62ch;color:var(--mut);margin:0 0 28px}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:28px}.stats b{display:block;font:700 28px Georgia,serif}.stats span{color:var(--mut);font-size:14px}
+.box{background:var(--card);padding:18px;margin-bottom:24px;border-left:4px solid var(--blue)}
+.box h2{font:700 20px Georgia,serif;margin:0 0 4px}.box p{margin:0 0 12px;color:var(--mut);font-size:14px}
+.row{display:grid;grid-template-columns:1fr;gap:0}@media(min-width:800px){.row{grid-template-columns:1fr 1fr;gap:24px}}
+canvas{max-height:380px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #35465a;white-space:nowrap}
+th{cursor:pointer}td.n{text-align:right}th:focus-visible{outline:2px solid var(--hit)}
+small{color:var(--mut)}
+
+.tl{display:flex;overflow-x:auto;padding:30px 0 10px;position:relative;gap:0}
+.tl:before{content:"";position:absolute;left:0;right:0;top:44px;height:3px;background:linear-gradient(90deg,#2f6db5,#d0343f,#f2b705)}
+.nd{flex:0 0 118px;text-align:center;position:relative;transition:opacity .2s}
+.nd i{display:block;width:30px;height:30px;border-radius:50%;margin:0 auto 8px;border:3px solid var(--card);box-shadow:0 0 0 2px var(--c);background:var(--c);position:relative}
+.nd b{display:block;font-size:13px}.nd span{font-size:12px;color:var(--mut);display:block;padding:0 6px}
+.nd.dim{opacity:.2}.nd.on i{box-shadow:0 0 0 3px var(--ink),0 0 14px var(--c)}
+input{width:100%;max-width:420px;padding:10px 12px;font:inherit;background:var(--bg);color:var(--ink);border:2px solid var(--blue);border-radius:4px}
+input:focus-visible{outline:2px solid var(--hit)}
+.res{margin-top:12px}.res h3{margin:12px 0 4px;font:700 16px Georgia,serif}.res li{font-size:14px;color:var(--mut);margin-left:18px}.res li b{color:var(--ink)}
+nav{display:flex;gap:18px;margin-bottom:22px;font-size:15px}nav a{color:var(--mut);text-decoration:none;padding-bottom:3px}nav a[aria-current]{color:var(--ink);border-bottom:3px solid var(--hit)}nav a:hover{color:var(--ink)}</style></head><body><main><nav><a href="dashboard.html">Dashboard</a><a href="timeline.html">Timeline</a><a href="actors.html" aria-current=page>Actors</a><a href="crew.html">Crew</a></nav><h1 style="border-bottom:3px solid #d0343f;padding-bottom:10px">Who was in what, and how it did</h1><p class="lead">Search any main cast member to see their DCEU films, roles, and box office returns.</p>
+<section class="box"><h2>Actor search</h2><p>Type an actor's name, like Gal Gadot or Margot Robbie.</p><input id="q" list="al" placeholder="Search actors" aria-label="Search actors"><datalist id="al"></datalist><div class="res" id="res"></div></section>
+<script>
+const D=`Man of Steel,2013,Zack Snyder,225,668,56
+Batman v Superman: Dawn of Justice,2016,Zack Snyder,250,873,29
+Suicide Squad,2016,David Ayer,175,747,26
+Wonder Woman,2017,Patty Jenkins,149,822,93
+Justice League,2017,Zack Snyder / Joss Whedon,300,658,40
+Aquaman,2018,James Wan,160,1148,65
+Shazam!,2019,David F. Sandberg,100,366,90
+Birds of Prey,2020,Cathy Yan,84.5,205,78
+Wonder Woman 1984,2020,Patty Jenkins,200,169,58
+The Suicide Squad,2021,James Gunn,185,168,90
+Black Adam,2022,Jaume Collet-Serra,195,393,39
+Shazam! Fury of the Gods,2023,David F. Sandberg,125,134,49
+The Flash,2023,Andy Muschietti,200,271,63
+Blue Beetle,2023,Angel Manuel Soto,104,130,78
+Aquaman and the Lost Kingdom,2023,James Wan,205,434,33`.split("\n").map(r=>{const a=r.split(",");const o={title:a[0],year:+a[1],dir:a[2],b:+a[3],g:+a[4],rt:+a[5]};o.x=o.g/o.b;return o});
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const CAST={"Man of Steel": {"c": "#2f6db5", "cast": [["Henry Cavill", "Superman"], ["Amy Adams", "Lois Lane"], ["Michael Shannon", "General Zod"], ["Russell Crowe", "Jor-El"], ["Kevin Costner", "Jonathan Kent"], ["Diane Lane", "Martha Kent"], ["Laurence Fishburne", "Perry White"]]}, "Batman v Superman: Dawn of Justice": {"c": "#7d8896", "cast": [["Ben Affleck", "Batman"], ["Henry Cavill", "Superman"], ["Gal Gadot", "Wonder Woman"], ["Amy Adams", "Lois Lane"], ["Jesse Eisenberg", "Lex Luthor"], ["Jeremy Irons", "Alfred"], ["Laurence Fishburne", "Perry White"], ["Holly Hunter", "Sen. Finch"]]}, "Suicide Squad": {"c": "#e0457b", "cast": [["Will Smith", "Deadshot"], ["Margot Robbie", "Harley Quinn"], ["Jared Leto", "Joker"], ["Viola Davis", "Amanda Waller"], ["Joel Kinnaman", "Rick Flag"], ["Jai Courtney", "Captain Boomerang"], ["Cara Delevingne", "Enchantress"], ["Jay Hernandez", "El Diablo"]]}, "Wonder Woman": {"c": "#e0a100", "cast": [["Gal Gadot", "Wonder Woman"], ["Chris Pine", "Steve Trevor"], ["Connie Nielsen", "Hippolyta"], ["Robin Wright", "Antiope"], ["Danny Huston", "Ludendorff"], ["David Thewlis", "Ares"]]}, "Justice League": {"c": "#c9302c", "cast": [["Ben Affleck", "Batman"], ["Henry Cavill", "Superman"], ["Gal Gadot", "Wonder Woman"], ["Ezra Miller", "The Flash"], ["Jason Momoa", "Aquaman"], ["Ray Fisher", "Cyborg"], ["Amy Adams", "Lois Lane"], ["J.K. Simmons", "Commissioner Gordon"], ["Ciarán Hinds", "Steppenwolf"], ["Jeremy Irons", "Alfred"]]}, "Aquaman": {"c": "#17a398", "cast": [["Jason Momoa", "Aquaman"], ["Amber Heard", "Mera"], ["Willem Dafoe", "Vulko"], ["Patrick Wilson", "Orm"], ["Nicole Kidman", "Atlanna"], ["Dolph Lundgren", "King Nereus"], ["Yahya Abdul-Mateen II", "Black Manta"], ["Temuera Morrison", "Tom Curry"]]}, "Shazam!": {"c": "#f0432e", "cast": [["Zachary Levi", "Shazam"], ["Asher Angel", "Billy Batson"], ["Mark Strong", "Dr. Sivana"], ["Jack Dylan Grazer", "Freddy Freeman"], ["Djimon Hounsou", "The Wizard"]]}, "Birds of Prey": {"c": "#9b59b6", "cast": [["Margot Robbie", "Harley Quinn"], ["Mary Elizabeth Winstead", "Huntress"], ["Jurnee Smollett", "Black Canary"], ["Rosie Perez", "Renee Montoya"], ["Ewan McGregor", "Black Mask"], ["Chris Messina", "Victor Zsasz"], ["Ella Jay Basco", "Cassandra Cain"]]}, "Wonder Woman 1984": {"c": "#f2b705", "cast": [["Gal Gadot", "Wonder Woman"], ["Chris Pine", "Steve Trevor"], ["Kristen Wiig", "Cheetah"], ["Pedro Pascal", "Maxwell Lord"], ["Robin Wright", "Antiope"], ["Connie Nielsen", "Hippolyta"]]}, "The Suicide Squad": {"c": "#3fae5a", "cast": [["Idris Elba", "Bloodsport"], ["John Cena", "Peacemaker"], ["Margot Robbie", "Harley Quinn"], ["Joel Kinnaman", "Rick Flag"], ["Viola Davis", "Amanda Waller"], ["Daniela Melchior", "Ratcatcher 2"], ["David Dastmalchian", "Polka-Dot Man"], ["Sylvester Stallone", "King Shark (voice)"], ["Peter Capaldi", "The Thinker"], ["Pete Davidson", "Blackguard"], ["Jai Courtney", "Captain Boomerang"]]}, "Black Adam": {"c": "#d9c44a", "cast": [["Dwayne Johnson", "Black Adam"], ["Aldis Hodge", "Hawkman"], ["Noah Centineo", "Atom Smasher"], ["Sarah Shahi", "Adrianna Tomaz"], ["Quintessa Swindell", "Cyclone"], ["Pierce Brosnan", "Doctor Fate"], ["Marwan Kenzari", "Ishmael Gregor"]]}, "Shazam! Fury of the Gods": {"c": "#ff6a3d", "cast": [["Zachary Levi", "Shazam"], ["Asher Angel", "Billy Batson"], ["Jack Dylan Grazer", "Freddy Freeman"], ["Rachel Zegler", "Anthea"], ["Helen Mirren", "Hespera"], ["Lucy Liu", "Kalypso"], ["Djimon Hounsou", "The Wizard"]]}, "The Flash": {"c": "#e8392b", "cast": [["Ezra Miller", "The Flash / Barry Allen"], ["Michael Keaton", "Batman"], ["Sasha Calle", "Supergirl"], ["Ben Affleck", "Batman"], ["Michael Shannon", "General Zod"], ["Maribel Verdú", "Nora Allen"], ["Ron Livingston", "Henry Allen"], ["Kiersey Clemons", "Iris West"]]}, "Blue Beetle": {"c": "#2d7dd2", "cast": [["Xolo Maridueña", "Blue Beetle / Jaime Reyes"], ["Adriana Barraza", "Nana"], ["Damián Alcázar", "Alberto Reyes"], ["George Lopez", "Rudy"], ["Bruna Marquezini", "Penny"], ["Susan Sarandon", "Victoria Kord"], ["Raoul Max Trujillo", "Carapax"], ["Belissa Escobedo", "Milagro"]]}, "Aquaman and the Lost Kingdom": {"c": "#0e7c86", "cast": [["Jason Momoa", "Aquaman"], ["Patrick Wilson", "Orm"], ["Amber Heard", "Mera"], ["Yahya Abdul-Mateen II", "Black Manta"], ["Nicole Kidman", "Atlanna"], ["Temuera Morrison", "Tom Curry"], ["Dolph Lundgren", "King Nereus"], ["Randall Park", "Dr. Stephen Shin"]]}};
+const byActor={};Object.entries(CAST).forEach(([t,o])=>o.cast.forEach(([a,r])=>{(byActor[a]=byActor[a]||[]).push([t,r])}));
+al.innerHTML=Object.keys(byActor).sort().map(a=>`<option value="${a}">`).join("");
+const film=t=>D.find(d=>d.title==t);
+q.oninput=()=>{const v=q.value.trim().toLowerCase();const hits=v?Object.keys(byActor).filter(a=>a.toLowerCase().includes(v)):[];const titles=new Set(hits.flatMap(a=>byActor[a].map(x=>x[0])));
+res.innerHTML=!v?"":hits.length?hits.sort().map(a=>{const fs=byActor[a].sort((x,y)=>film(x[0]).year-film(y[0]).year);const avg=mean(fs.map(x=>film(x[0]).x));return `<h3>${a} <small>${fs.length} film${fs.length>1?"s":""}, avg ${avg.toFixed(2)}× budget</small></h3><ul>`+fs.map(([t,r])=>`<li><b>${t}</b> (${film(t).year}) as ${r}, ${film(t).x.toFixed(2)}×, ${film(t).rt}% RT</li>`).join("")+"</ul>"}).join(""):"<p>No actor matches that name in the main cast lists.</p>"};
+</script></main></body></html>

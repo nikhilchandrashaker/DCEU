@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCEU Crew Search</title>
+<style>
+:root{--bg:#18212c;--ink:#e6ecf2;--mut:#93a3b5;--hit:#f2b705;--miss:#d0343f;--card:#233040;--blue:#2f6db5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:32px 20px 60px}
+h1{font:700 clamp(30px,5vw,52px)/1.05 Georgia,serif;margin:0 0 10px}
+p.lead{max-width:62ch;color:var(--mut);margin:0 0 28px}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:28px}.stats b{display:block;font:700 28px Georgia,serif}.stats span{color:var(--mut);font-size:14px}
+.box{background:var(--card);padding:18px;margin-bottom:24px;border-left:4px solid var(--blue)}
+.box h2{font:700 20px Georgia,serif;margin:0 0 4px}.box p{margin:0 0 12px;color:var(--mut);font-size:14px}
+.row{display:grid;grid-template-columns:1fr;gap:0}@media(min-width:800px){.row{grid-template-columns:1fr 1fr;gap:24px}}
+canvas{max-height:380px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #35465a;white-space:nowrap}
+th{cursor:pointer}td.n{text-align:right}th:focus-visible{outline:2px solid var(--hit)}
+small{color:var(--mut)}
+
+.tl{display:flex;overflow-x:auto;padding:30px 0 10px;position:relative;gap:0}
+.tl:before{content:"";position:absolute;left:0;right:0;top:44px;height:3px;background:linear-gradient(90deg,#2f6db5,#d0343f,#f2b705)}
+.nd{flex:0 0 118px;text-align:center;position:relative;transition:opacity .2s}
+.nd i{display:block;width:30px;height:30px;border-radius:50%;margin:0 auto 8px;border:3px solid var(--card);box-shadow:0 0 0 2px var(--c);background:var(--c);position:relative}
+.nd b{display:block;font-size:13px}.nd span{font-size:12px;color:var(--mut);display:block;padding:0 6px}
+.nd.dim{opacity:.2}.nd.on i{box-shadow:0 0 0 3px var(--ink),0 0 14px var(--c)}
+input{width:100%;max-width:420px;padding:10px 12px;font:inherit;background:var(--bg);color:var(--ink);border:2px solid var(--blue);border-radius:4px}
+input:focus-visible{outline:2px solid var(--hit)}
+.res{margin-top:12px}.res h3{margin:12px 0 4px;font:700 16px Georgia,serif}.res li{font-size:14px;color:var(--mut);margin-left:18px}.res li b{color:var(--ink)}
+nav{display:flex;gap:18px;margin-bottom:22px;font-size:15px}nav a{color:var(--mut);text-decoration:none;padding-bottom:3px}nav a[aria-current]{color:var(--ink);border-bottom:3px solid var(--hit)}nav a:hover{color:var(--ink)}</style></head><body><main><nav><a href="dashboard.html">Dashboard</a><a href="timeline.html">Timeline</a><a href="actors.html">Actors</a><a href="crew.html" aria-current=page>Crew</a></nav><h1 style="border-bottom:3px solid #d0343f;padding-bottom:10px">Who made them</h1><p class="lead">Directors, composers, and cinematographers across all fifteen films, with how each film performed.</p>
+<section class="box"><h2>Crew search</h2><p>Type a director, composer, or cinematographer, like Hans Zimmer or Matthew Jensen.</p><input id="q" list="al" placeholder="Search crew" aria-label="Search crew"><datalist id="al"></datalist><div class="res" id="res"></div></section>
+<script>
+const D=`Man of Steel,2013,Zack Snyder,225,668,56
+Batman v Superman: Dawn of Justice,2016,Zack Snyder,250,873,29
+Suicide Squad,2016,David Ayer,175,747,26
+Wonder Woman,2017,Patty Jenkins,149,822,93
+Justice League,2017,Zack Snyder / Joss Whedon,300,658,40
+Aquaman,2018,James Wan,160,1148,65
+Shazam!,2019,David F. Sandberg,100,366,90
+Birds of Prey,2020,Cathy Yan,84.5,205,78
+Wonder Woman 1984,2020,Patty Jenkins,200,169,58
+The Suicide Squad,2021,James Gunn,185,168,90
+Black Adam,2022,Jaume Collet-Serra,195,393,39
+Shazam! Fury of the Gods,2023,David F. Sandberg,125,134,49
+The Flash,2023,Andy Muschietti,200,271,63
+Blue Beetle,2023,Angel Manuel Soto,104,130,78
+Aquaman and the Lost Kingdom,2023,James Wan,205,434,33`.split("\n").map(r=>{const a=r.split(",");const o={title:a[0],year:+a[1],dir:a[2],b:+a[3],g:+a[4],rt:+a[5]};o.x=o.g/o.b;return o});
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const CREW=[["Man of Steel", "Director", "Zack Snyder"], ["Man of Steel", "Composer", "Hans Zimmer"], ["Man of Steel", "Cinematographer", "Amir Mokri"], ["Batman v Superman: Dawn of Justice", "Director", "Zack Snyder"], ["Batman v Superman: Dawn of Justice", "Composer", "Hans Zimmer"], ["Batman v Superman: Dawn of Justice", "Composer", "Junkie XL"], ["Batman v Superman: Dawn of Justice", "Cinematographer", "Larry Fong"], ["Suicide Squad", "Director", "David Ayer"], ["Suicide Squad", "Composer", "Steven Price"], ["Suicide Squad", "Cinematographer", "Roman Vasyanov"], ["Wonder Woman", "Director", "Patty Jenkins"], ["Wonder Woman", "Composer", "Rupert Gregson-Williams"], ["Wonder Woman", "Cinematographer", "Matthew Jensen"], ["Justice League", "Director", "Zack Snyder"], ["Justice League", "Director", "Joss Whedon"], ["Justice League", "Composer", "Danny Elfman"], ["Justice League", "Cinematographer", "Fabian Wagner"], ["Aquaman", "Director", "James Wan"], ["Aquaman", "Composer", "Rupert Gregson-Williams"], ["Aquaman", "Cinematographer", "Don Burgess"], ["Shazam!", "Director", "David F. Sandberg"], ["Shazam!", "Composer", "Benjamin Wallfisch"], ["Shazam!", "Cinematographer", "Maxime Alexandre"], ["Birds of Prey", "Director", "Cathy Yan"], ["Birds of Prey", "Composer", "Daniel Pemberton"], ["Birds of Prey", "Cinematographer", "Matthew Libatique"], ["Wonder Woman 1984", "Director", "Patty Jenkins"], ["Wonder Woman 1984", "Composer", "Hans Zimmer"], ["Wonder Woman 1984", "Cinematographer", "Matthew Jensen"], ["The Suicide Squad", "Director", "James Gunn"], ["The Suicide Squad", "Composer", "John Murphy"], ["The Suicide Squad", "Cinematographer", "Henry Braham"], ["Black Adam", "Director", "Jaume Collet-Serra"], ["Black Adam", "Composer", "Lorne Balfe"], ["Black Adam", "Cinematographer", "Lawrence Sher"], ["Shazam! Fury of the Gods", "Director", "David F. Sandberg"], ["Shazam! Fury of the Gods", "Composer", "Christophe Beck"], ["Shazam! Fury of the Gods", "Cinematographer", "Gyula Pados"], ["The Flash", "Director", "Andy Muschietti"], ["The Flash", "Composer", "Benjamin Wallfisch"], ["The Flash", "Cinematographer", "Henry Braham"], ["Blue Beetle", "Director", "Angel Manuel Soto"], ["Blue Beetle", "Composer", "Bobby Krlic"], ["Blue Beetle", "Cinematographer", "Pawel Pogorzelski"], ["Aquaman and the Lost Kingdom", "Director", "James Wan"], ["Aquaman and the Lost Kingdom", "Composer", "Rupert Gregson-Williams"], ["Aquaman and the Lost Kingdom", "Cinematographer", "Don Burgess"]];
+const by={};CREW.forEach(([t,r,n])=>{(by[n]=by[n]||[]).push([t,r])});
+al.innerHTML=Object.keys(by).sort().map(n=>`<option value="${n}">`).join("");
+const film=t=>D.find(d=>d.title==t);
+q.oninput=()=>{const v=q.value.trim().toLowerCase();const hits=v?Object.keys(by).filter(n=>n.toLowerCase().includes(v)):[];
+res.innerHTML=!v?"":hits.length?hits.sort().map(n=>{const fs=by[n].sort((x,y)=>film(x[0]).year-film(y[0]).year);const avg=mean(fs.map(x=>film(x[0]).x));const roles=[...new Set(fs.map(x=>x[1]))].join(", ");return `<h3>${n} <small>${roles}, ${fs.length} film${fs.length>1?"s":""}, avg ${avg.toFixed(2)}× budget</small></h3><ul>`+fs.map(([t,r])=>`<li><b>${t}</b> (${film(t).year}), ${r}, ${film(t).x.toFixed(2)}×, ${film(t).rt}% RT</li>`).join("")+"</ul>"}).join(""):"<p>No crew member matches that name.</p>"};
+</script></main></body></html>
